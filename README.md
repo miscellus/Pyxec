@@ -1,5 +1,5 @@
 # Pyxec
-#### ~ Python execution directly in sublime text buffer ~
+#### ~ Python execution directly in your Sublime Text buffer ~
 
 Preliminary readme file.
 
