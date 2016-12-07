@@ -3,4 +3,4 @@
 
 Preliminary readme file.
 
-Search for pyxec in Sublime Text's command pallete to see the possible operations.
+Search for pyxec in Sublime Text's command palette to see the possible operations.
