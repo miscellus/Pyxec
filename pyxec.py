@@ -149,7 +149,7 @@ def do_for_all(view, edit, expand_func, exec_func, replace=False):
         out_text = exec_func(region, view, edit)
         buffer_for_clipboard.append(out_text)
         if replace:
-            self.view.replace(edit, region, out_text)
+            view.replace(edit, region, out_text)
         if region.size() >= view.size():
             break
     return "\n".join(buffer_for_clipboard)
