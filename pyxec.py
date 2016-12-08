@@ -126,10 +126,6 @@ def eval_region(region, view, edit):
     except Exception as e:
         error(e)
 
-class PyxecInitContextCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        init_context()
-
 def expand_empty_region_buffer(region, view):
     if region.empty():
         return sublime.Region(0, view.size())
@@ -142,7 +138,7 @@ def expand_empty_region_line(region, view):
     else:
         return region
 
-def do_for_all(view, edit, expand_func, exec_func, replace=False):
+def pyxec(view, edit, expand_func, exec_func, replace=False):
     buffer_for_clipboard = []
     for region in view.sel():
         region = expand_func(region, view)
@@ -152,53 +148,28 @@ def do_for_all(view, edit, expand_func, exec_func, replace=False):
             view.replace(edit, region, out_text)
         if region.size() >= view.size():
             break
-    return "\n".join(buffer_for_clipboard)
+    sublime.set_clipboard("\n".join(buffer_for_clipboard))
+
+class PyxecInitContextCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        init_context()
 
 class PyxecExecReplaceCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        to_clipboard = do_for_all(self.view, edit, expand_empty_region_buffer, exec_region, replace=True)
-        sublime.set_clipboard(to_clipboard)
+        pyxec(self.view, edit, expand_empty_region_buffer, exec_region, replace=True)
         sublime.status_message("Pyxec: Execution completed.")
-
-        # view = self.view
-        # selections = view.sel()
-        # for region in selections:
-        #     region, was_empty = expand_empty_region_buffer(region, view)
-        #     out_text = exec_region(region, view, edit)
-        #     self.view.replace(edit, region, out_text)
-        #     if was_empty:
-        #         break
 
 class PyxecExecToClipboardCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        view = self.view
-        buffer_for_clipboard = []
-        for region in view.sel():
-            region, was_empty = expand_empty_region_buffer(region, view)
-            out_text = exec_region(region, view, edit)
-            buffer_for_clipboard.append(out_text)
-            if was_empty:
-                break
-        if len(buffer_for_clipboard) > 0:
-            sublime.set_clipboard("\n".join(buffer_for_clipboard))
+        pyxec(self.view, edit, expand_empty_region_buffer, exec_region)
         sublime.status_message("Pyxec: Execution completed.")
-
-class PyxecEvalToClipboardCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        view = self.view
-        buffer_for_clipboard = []
-        for region in view.sel():
-            region = expand_empty_region_line(region, view)
-            out_text = eval_region(region, view, edit)
-            buffer_for_clipboard.append(out_text)
-        sublime.set_clipboard("\n".join(buffer_for_clipboard))
-        sublime.status_message("Pyxec: Evaluation completed.")
 
 class PyxecEvalReplaceCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        view = self.view
-        for region in reversed(view.sel()):
-            region = expand_empty_region_line(region, view)
-            out_text = eval_region(region, view, edit)
-            view.replace(edit, region, out_text)
+        pyxec(self.view, edit, expand_empty_region_line, eval_region, replace=True)
+        sublime.status_message("Pyxec: Evaluation completed.")
+
+class PyxecEvalToClipboardCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        pyxec(self.view, edit, expand_empty_region_line, eval_region)
         sublime.status_message("Pyxec: Evaluation completed.")
