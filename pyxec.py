@@ -140,12 +140,22 @@ def expand_empty_region_line(region, view):
 
 def pyxec_output():
     win = sublime.active_window()
-    o = win.find_output_panel("Pyxec")
-    if o is None:
-        o = win.create_output_panel("Pyxec", True)
+    try:
+        v = pyxec_output.sheet.view()
+        v.name()
+    except:
+        v = win.new_file()
+        v.set_name("Pyxec Output")
+        group, index = win.get_view_index(v)
+        pyxec_output.sheet = win.sheets_in_group(group)[index]
 
-    win.run_command("show_panel", args={"panel": "output.Pyxec"})
-    return o
+    # o = win.find_output_panel("Pyxec")
+    # if o is None:
+    #     o = win.create_output_panel("Pyxec", True)
+
+    # win.run_command("show_panel", args={"panel": "output.Pyxec"})
+
+    return v
 
 def pyxec(view, edit, expand_func, exec_func, replace=False):
     buffer_for_clipboard = []
