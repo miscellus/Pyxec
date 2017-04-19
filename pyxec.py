@@ -138,16 +138,14 @@ def expand_empty_region_line(region, view):
     else:
         return region
 
-def get_pyxec_view(window):
-    for win in sublime.windows():
-        pv = win.find_open_file("Pyxec Output")
-        if pv is not None:
-            break
-    if pv is None:
-        pv = sublime.active_window().new_file()
-        pv.set_name("Pyxec Output")
-    pv.set_scratch(True)
-    return pv
+def pyxec_view():
+    try:
+        v = pyxec_view.view
+    except AttributeError:
+        pyxec_view.view = v = sublime.active_window().new_file()
+        v.set_name("Pyxec Output")
+        v.set_scratch(True)
+    return v
 
 def pyxec(view, edit, expand_func, exec_func, replace=False):
     buffer_for_clipboard = []
@@ -160,7 +158,8 @@ def pyxec(view, edit, expand_func, exec_func, replace=False):
         if region.size() >= view.size():
             break
     output_text = "\n".join(buffer_for_clipboard)
-    pv = get_pyxec_view()
+    pv = pyxec_view()
+    pv.erase(edit, sublime.Region(0, pv.size()))
     pv.insert(edit, pv.size(), output_text)
     sublime.set_clipboard(output_text)
 
