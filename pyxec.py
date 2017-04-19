@@ -62,7 +62,7 @@ def modexp(base, exponent, modulus):
     while exponent > 0:
         if exponent & 1 == 1:
             result = (result * base) % modulus
-        exponent >>= 1
+        exponent /= 2
         base = (base * base) % modulus
     return result
 
@@ -138,6 +138,14 @@ def expand_empty_region_line(region, view):
     else:
         return region
 
+def get_pyxec_view():
+    pv = sublime.window.find_open_file("Pyxec Output")
+    if pv is None:
+        pv = sublime.window.new_file()
+        pv.set_name("Pyxec Output")
+    pv.set_scratch(True)
+    return pv
+
 def pyxec(view, edit, expand_func, exec_func, replace=False):
     buffer_for_clipboard = []
     for region in view.sel():
@@ -148,7 +156,10 @@ def pyxec(view, edit, expand_func, exec_func, replace=False):
             view.replace(edit, region, out_text)
         if region.size() >= view.size():
             break
-    sublime.set_clipboard("\n".join(buffer_for_clipboard))
+    output_text = "\n".join(buffer_for_clipboard)
+    pv = get_pyxec_view()
+    pv.insert(edit, pv.size(), output_text)
+    sublime.set_clipboard(output_text)
 
 class PyxecInitContextCommand(sublime_plugin.TextCommand):
     def run(self, edit):
