@@ -146,8 +146,7 @@ def get_pyxec_view(window):
     pv.set_scratch(True)
     return pv
 
-def pyxec(cmd, edit, expand_func, exec_func, replace=False):
-    view = cmd.view
+def pyxec(view, edit, expand_func, exec_func, replace=False):
     buffer_for_clipboard = []
     for region in view.sel():
         region = expand_func(region, view)
@@ -158,7 +157,7 @@ def pyxec(cmd, edit, expand_func, exec_func, replace=False):
         if region.size() >= view.size():
             break
     output_text = "\n".join(buffer_for_clipboard)
-    pv = get_pyxec_view(cmd.window)
+    pv = get_pyxec_view(view.window())
     pv.insert(edit, pv.size(), output_text)
     sublime.set_clipboard(output_text)
 
@@ -168,20 +167,20 @@ class PyxecInitContextCommand(sublime_plugin.TextCommand):
 
 class PyxecExecReplaceCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        pyxec(self, edit, expand_empty_region_buffer, exec_region, replace=True)
+        pyxec(self.view, edit, expand_empty_region_buffer, exec_region, replace=True)
         sublime.status_message("Pyxec: Execution completed.")
 
 class PyxecExecToClipboardCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        pyxec(self, edit, expand_empty_region_buffer, exec_region)
+        pyxec(self.view, edit, expand_empty_region_buffer, exec_region)
         sublime.status_message("Pyxec: Execution completed.")
 
 class PyxecEvalReplaceCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        pyxec(self, edit, expand_empty_region_line, eval_region, replace=True)
+        pyxec(self.view, edit, expand_empty_region_line, eval_region, replace=True)
         sublime.status_message("Pyxec: Evaluation completed.")
 
 class PyxecEvalToClipboardCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        pyxec(self, edit, expand_empty_region_line, eval_region)
+        pyxec(self.view, edit, expand_empty_region_line, eval_region)
         sublime.status_message("Pyxec: Evaluation completed.")
