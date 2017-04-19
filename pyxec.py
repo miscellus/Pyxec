@@ -139,9 +139,9 @@ def expand_empty_region_line(region, view):
         return region
 
 def get_pyxec_view():
-    pv = sublime.window.find_open_file("Pyxec Output")
+    pv = window.find_open_file("Pyxec Output")
     if pv is None:
-        pv = sublime.window.new_file()
+        pv = window.new_file()
         pv.set_name("Pyxec Output")
     pv.set_scratch(True)
     return pv
