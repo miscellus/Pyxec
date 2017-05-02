@@ -79,12 +79,6 @@ def extended_euclid(phi, e):
 
     return d
 
-def rsa_encrypt(message, public_key, modulus):
-    return modexp(message, public_key, modulus)
-
-def rsa_decrypt(cypher, private_key, modulus):
-    return modexp(cypher, private_key, modulus)
-
 def urlget(url, enc='utf8'):
     return urlopen(url).read().decode(enc)
 """
@@ -144,17 +138,18 @@ def pyxec_output():
         v = pyxec_output.sheet.view()
         v.name()
     except:
-        v = win.new_file()
-        v.set_name("Pyxec Output")
+        for iv in win.views():
+            if iv.name() == "Pyxec Output":
+                v = iv
+                break
+        if v is None:
+            v = win.new_file()
+            v.set_name("Pyxec Output")
         group, index = win.get_view_index(v)
         pyxec_output.sheet = win.sheets_in_group(group)[index]
-
-    # o = win.find_output_panel("Pyxec")
-    # if o is None:
-    #     o = win.create_output_panel("Pyxec", True)
-
-    # win.run_command("show_panel", args={"panel": "output.Pyxec"})
-
+    tmp = win.active_view()
+    win.focus_view(v)
+    win.focus_view(tmp)
     return v
 
 def pyxec(view, edit, expand_func, exec_func, replace=False):
