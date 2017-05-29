@@ -138,6 +138,7 @@ def pyxec_output():
         v = pyxec_output.sheet.view()
         v.name()
     except:
+        v = None
         for iv in win.views():
             if iv.name() == "Pyxec Output":
                 v = iv
@@ -147,9 +148,9 @@ def pyxec_output():
             v.set_name("Pyxec Output")
         group, index = win.get_view_index(v)
         pyxec_output.sheet = win.sheets_in_group(group)[index]
-    tmp = win.active_view()
+    currentView = win.active_view()
     win.focus_view(v)
-    win.focus_view(tmp)
+    win.focus_view(currentView)
     return v
 
 def pyxec(view, edit, expand_func, exec_func, replace=False):
