@@ -12,7 +12,8 @@ from itertools import *
 from random import *
 from pprint import *
 from collections import *
-from urllib.request import urlopen
+import urllib.request
+import os
 import io
 
 def average(nums):
@@ -79,8 +80,19 @@ def extended_euclid(phi, e):
 
     return d
 
-def urlget(url, enc='utf8'):
-    return urlopen(url).read().decode(enc)
+def download_file(url, destination):
+    if destination[-1] == "/":
+        destination += url[url.rfind('/')+1:]
+
+    if os.path.exists(destination):
+        base, ext = os.path.splitext(destination)
+        number = 2
+        destination = "{}({}){}".format(base, number, ext)
+        while os.path.exists(destination):
+            number += 1
+            destination = "{}({}){}".format(base, number, ext)
+
+    urllib.request.urlretrieve(url, destination)
 """
 
 context = {}
