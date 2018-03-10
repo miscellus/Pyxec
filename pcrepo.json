@@ -1,0 +1,16 @@
+{
+    "schema_version": "3.0.0",
+    "packages": [
+        {
+            "name": "Pyxel",
+            "details": "https://github.com/miscellus/pyxec",
+            "labels": ["text manipulation"],
+            "releases": [
+                {
+                    "sublime_text": ">=3000",
+                    "tags": "st3-"
+                }
+            ]
+        }
+    ]
+}
