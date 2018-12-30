@@ -2,7 +2,7 @@
     "schema_version": "3.0.0",
     "packages": [
         {
-            "name": "Pyxel",
+            "name": "Pyxec",
             "details": "https://github.com/miscellus/pyxec",
             "labels": ["text manipulation"],
             "releases": [
