@@ -1,23 +1,13 @@
 import sublime
 import sublime_plugin
-import io
-import sys
-import os
-import time
-import multiprocessing
-from collections import deque
 
 context_setup_code = """\
 import math
 from math import *
-from datetime import *
-from time import *
 from itertools import *
 from random import *
 from pprint import *
 from collections import *
-import os
-import io
 """
 
 def pyxec_error(e):
@@ -25,28 +15,6 @@ def pyxec_error(e):
     print(msg)
     sublime.status_message(msg)
     raise e
-
-
-def get_pyxec_view():
-    pyxec_view_name = "Pyxec View"
-    win = sublime.active_window()
-    try:
-        v = get_pyxec_view.sheet.view()
-        v.name()
-    except:
-        v = None
-        for iv in win.views():
-            if iv.name() == pyxec_view_name:
-                v = iv
-                break
-        if v is None:
-            v = win.new_file()
-            v.set_name(pyxec_view_name)
-        group, index = win.get_view_index(v)
-        get_pyxec_view.sheet = win.sheets_in_group(group)[index]
-    win.focus_view(v)
-    win.focus_view(win.active_view())
-    return v
 
 context = {}
 def init_context():
@@ -61,6 +29,27 @@ class PyxecInitContextCommand(sublime_plugin.Command):
         init_context()
 
 class PyxecExecuteCommand(sublime_plugin.TextCommand):
+    def get_pyxec_view(self):
+        pyxec_view_name = "Pyxec View"
+        win = sublime.active_window()
+        try:
+            v = get_pyxec_view.sheet.view()
+            v.name()
+        except:
+            v = None
+            for iv in win.views():
+                if iv.name() == pyxec_view_name:
+                    v = iv
+                    break
+            if v is None:
+                v = win.new_file()
+                v.set_name(pyxec_view_name)
+            group, index = win.get_view_index(v)
+            get_pyxec_view.sheet = win.sheets_in_group(group)[index]
+        win.focus_view(v)
+        win.focus_view(win.active_view())
+        return v
+
     def run(self, edit):
         global context
 
@@ -95,7 +84,7 @@ class PyxecExecuteCommand(sublime_plugin.TextCommand):
         pyxec_view = get_pyxec_view()
         pyxec_view.erase(edit, sublime.Region(0, pyxec_view.size()))
         pyxec_view.insert(edit, pyxec_view.size(), joined_result_strings)
-
+        sublime.active_window().focus_view(view)
         sublime.status_message("Pyxec: Execution completed.")
 
 class PyxecEvaluateReplaceCommand(sublime_plugin.TextCommand):
