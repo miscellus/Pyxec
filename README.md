@@ -1,11 +1,8 @@
 # Pyxec
-*A plugin for Sublime Text*
+__Pyxec is a plugin for Sublime Text that lets you execute or evaluate regions of selected python code in your Sublime Text buffer.__
 
-Pyxec lets you execute or evaluate regions of selected python code in your Sublime Text buffer.
-
-If a selection is evaluated, it is replaced with the value of the evaluated python expression.
-
-If a selection is executed, the output of every print statement in the selected code
++ If a selection is *evaluated*, it is replaced with the value of the evaluated python expression.
++ If a selection is *executed*, the output of every print statement in the selected code
 is written to a special buffer called __"Pyxec View"__
 
 When executing code using Pyxec, the results of assignments and declarations persist; that means that you can use previously defined variables and functions in subsequent executions and evaluations.
