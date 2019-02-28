@@ -1,5 +1,6 @@
 import sublime
 import sublime_plugin
+from io import StringIO
 
 context_setup_code = """\
 import math
@@ -73,7 +74,7 @@ class PyxecExecuteCommand(sublime_plugin.TextCommand):
             region_string = view.substr(region)
 
             try:
-                with io.StringIO() as exec_out_stream:
+                with StringIO() as exec_out_stream:
 
                     def print_func(*args, end="\n", sep=" "):
                         exec_out_stream.write(sep.join(map(str, args)) + end)
