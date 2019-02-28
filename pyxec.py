@@ -29,26 +29,34 @@ class PyxecInitContextCommand(sublime_plugin.Command):
         init_context()
 
 class PyxecExecuteCommand(sublime_plugin.TextCommand):
+
+    pyxec_sheet = None
+
     def get_pyxec_view(self):
         pyxec_view_name = "Pyxec View"
-        win = sublime.active_window()
+
+        window = sublime.active_window()
+        original_view = window.active_view()
+
         try:
-            v = get_pyxec_view.sheet.view()
-            v.name()
+            pyxec_view = pyxec_sheet.view()
+            pyxec_view.name()
+
         except:
-            v = None
-            for iv in win.views():
+            pyxec_view = None
+            for iv in window.views():
                 if iv.name() == pyxec_view_name:
-                    v = iv
+                    pyxec_view = iv
                     break
-            if v is None:
-                v = win.new_file()
-                v.set_name(pyxec_view_name)
-            group, index = win.get_view_index(v)
-            get_pyxec_view.sheet = win.sheets_in_group(group)[index]
-        win.focus_view(v)
-        win.focus_view(win.active_view())
-        return v
+            if pyxec_view is None:
+                pyxec_view = window.new_file()
+                pyxec_view.set_name(pyxec_view_name)
+            group, index = window.get_view_index(pyxec_view)
+            pyxec_sheet = window.sheets_in_group(group)[index]
+
+        window.focus_view(pyxec_view)
+        window.focus_view(original_view)
+        return pyxec_view
 
     def run(self, edit):
         global context
