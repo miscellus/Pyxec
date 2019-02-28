@@ -2,6 +2,10 @@ import sublime
 import sublime_plugin
 import io
 import sys
+import os
+import time
+import multiprocessing
+from collections import deque
 
 context_setup_code = """\
 import math
@@ -12,88 +16,37 @@ from itertools import *
 from random import *
 from pprint import *
 from collections import *
-import urllib.request
 import os
 import io
-
-def average(nums):
-    return sum(nums) / len(nums)
-
-avg = average
-
-_sin = sin
-def sin(x):
-    return _sin(radians(x))
-
-_cos = cos
-def cos(x):
-    return _cos(radians(x))
-
-_tan = tan
-def tan(x):
-    return degrees(_tan(x))
-
-_atan2 = atan2
-def atan2(y, x):
-    return degrees(_atan2(y, x))
-
-def gcd(*args):
-    it = iter(args)
-    a = next(it)
-    for b in it:
-        while b > 0:
-            a, b = b, a % b
-    return a
-
-def lcm(*args):
-    it = iter(args)
-    a = next(it)
-    for b in it:
-        c, d = a, b
-        while d > 0:
-            c, d = d, c % d
-        a *= b // c
-    return a
-
-def modexp(base, exponent, modulus):
-    if modulus == 1:
-        return 0
-    result = 1
-    base %= modulus
-    while exponent > 0:
-        if exponent & 1 == 1:
-            result = (result * base) % modulus
-        exponent /= 2
-        base = (base * base) % modulus
-    return result
-
-def extended_euclid(phi, e):
-    a = phi
-    b = e
-    c = phi
-    d = 1
-
-    while b != 1:
-        t = a//b
-        a, b = b, (a - b*t)
-        c, d = d, (c - d*t) % phi
-
-    return d
-
-def download_file(url, destination):
-    if destination[-1] == "/":
-        destination += url[url.rfind('/')+1:]
-
-    if os.path.exists(destination):
-        base, ext = os.path.splitext(destination)
-        number = 2
-        destination = "{}({}){}".format(base, number, ext)
-        while os.path.exists(destination):
-            number += 1
-            destination = "{}({}){}".format(base, number, ext)
-
-    urllib.request.urlretrieve(url, destination)
 """
+
+def pyxec_error(e):
+    msg = "Pyxec: " + str(e)
+    print(msg)
+    sublime.status_message(msg)
+    raise e
+
+
+def get_pyxec_view():
+    pyxec_view_name = "Pyxec View"
+    win = sublime.active_window()
+    try:
+        v = get_pyxec_view.sheet.view()
+        v.name()
+    except:
+        v = None
+        for iv in win.views():
+            if iv.name() == pyxec_view_name:
+                v = iv
+                break
+        if v is None:
+            v = win.new_file()
+            v.set_name(pyxec_view_name)
+        group, index = win.get_view_index(v)
+        get_pyxec_view.sheet = win.sheets_in_group(group)[index]
+    win.focus_view(v)
+    win.focus_view(win.active_view())
+    return v
 
 context = {}
 def init_context():
@@ -102,106 +55,75 @@ def init_context():
     exec(context_setup_code, context)
 init_context()
 
-def bind_out_func(out_stream):
-    def out(*args, end="\n", sep=" "):
-        out_stream.write(sep.join(map(str, args)) + end)
-    return out
 
-def error(e):
-    msg = "Pyxec: " + str(e)
-    print(msg)
-    sublime.status_message(msg)
-    raise e
-
-def exec_region(region, view, edit):
-    s = view.substr(region)
-    try:
-        exec_out = io.StringIO()
-        context["out"] = bind_out_func(exec_out)
-        exec(s, context)
-        out_text = exec_out.getvalue().rstrip()
-        exec_out.close()
-        return out_text
-    except Exception as e:
-        error(e)
-
-def eval_region(region, view, edit):
-    s = view.substr(region)
-    try:
-        return str(eval(s, context))
-    except Exception as e:
-        error(e)
-
-def expand_empty_region_buffer(region, view):
-    if region.empty():
-        return sublime.Region(0, view.size())
-    else:
-        return region
-
-def expand_empty_region_line(region, view):
-    if region.empty():
-        return view.line(region)
-    else:
-        return region
-
-def pyxec_output():
-    win = sublime.active_window()
-    try:
-        v = pyxec_output.sheet.view()
-        v.name()
-    except:
-        v = None
-        for iv in win.views():
-            if iv.name() == "Pyxec Output":
-                v = iv
-                break
-        if v is None:
-            v = win.new_file()
-            v.set_name("Pyxec Output")
-        group, index = win.get_view_index(v)
-        pyxec_output.sheet = win.sheets_in_group(group)[index]
-    currentView = win.active_view()
-    win.focus_view(v)
-    win.focus_view(currentView)
-    return v
-
-def pyxec(view, edit, expand_func, exec_func, replace=False):
-    buffer_for_clipboard = []
-    for region in view.sel():
-        region = expand_func(region, view)
-        out_text = exec_func(region, view, edit)
-        buffer_for_clipboard.append(out_text)
-        if replace:
-            view.replace(edit, region, out_text)
-        if region.size() >= view.size():
-            break
-    output_text = "\n".join(buffer_for_clipboard)
-    if not replace:
-        po = pyxec_output()
-        po.erase(edit, sublime.Region(0, po.size()))
-        po.insert(edit, po.size(), output_text)
-    sublime.set_clipboard(output_text)
-
-class PyxecInitContextCommand(sublime_plugin.TextCommand):
+class PyxecInitContextCommand(sublime_plugin.Command):
     def run(self, edit):
         init_context()
 
-class PyxecExecReplaceCommand(sublime_plugin.TextCommand):
+class PyxecExecuteCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        pyxec(self.view, edit, expand_empty_region_buffer, exec_region, replace=True)
+        global context
+
+        view = self.view
+        view_size = view.size()
+        regions = view.sel()
+        result_strings = []
+
+        for region in regions:
+            if region.empty():
+                region = sublime.Region(0, view_size)
+
+            region_string = view.substr(region)
+
+            try:
+                with io.StringIO() as exec_out_stream:
+
+                    def print_func(*args, end="\n", sep=" "):
+                        exec_out_stream.write(sep.join(map(str, args)) + end)
+
+                    context["print"] = print_func
+                    exec(region_string, context)
+                    result_string = exec_out_stream.getvalue().rstrip()
+
+                    result_strings.append(result_string)
+
+            except Exception as e:
+                pyxec_error(e)
+
+        joined_result_strings = "\n".join(result_strings)
+
+        pyxec_view = get_pyxec_view()
+        pyxec_view.erase(edit, sublime.Region(0, pyxec_view.size()))
+        pyxec_view.insert(edit, pyxec_view.size(), joined_result_strings)
+
         sublime.status_message("Pyxec: Execution completed.")
 
-class PyxecExecToClipboardCommand(sublime_plugin.TextCommand):
+class PyxecEvaluateReplaceCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        pyxec(self.view, edit, expand_empty_region_buffer, exec_region)
-        sublime.status_message("Pyxec: Execution completed.")
+        global context
 
-class PyxecEvalReplaceCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        pyxec(self.view, edit, expand_empty_region_line, eval_region, replace=True)
-        sublime.status_message("Pyxec: Evaluation completed.")
+        view = self.view
+        regions = view.sel()
+        result_strings = []
 
-class PyxecEvalToClipboardCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        pyxec(self.view, edit, expand_empty_region_line, eval_region)
+        for region in regions:
+            if region.empty():
+                region = view.line(region)
+
+            region_string = view.substr(region)
+
+            try:
+                result_string = str(eval(region_string, context))
+                result_strings.append(result_string)
+                view.replace(edit, region, result_string)
+
+                if region.size() >= view.size():
+                    break
+
+            except Exception as e:
+                pyxec_error(e)
+
+        joined_result_strings = "\n".join(result_strings)
+        sublime.set_clipboard(joined_result_strings)
+
         sublime.status_message("Pyxec: Evaluation completed.")

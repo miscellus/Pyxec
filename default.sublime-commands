@@ -1,7 +1,5 @@
 [
-    {"caption": "Pyxec: Execute, replace selection", "command": "pyxec_exec_replace"},
-    {"caption": "Pyxec: Execute, output to clipboard", "command": "pyxec_exec_to_clipboard"},
-    {"caption": "Pyxec: Evaluate, replace selection", "command": "pyxec_eval_replace"},
-    {"caption": "Pyxec: Evaluate, output to clipboard", "command": "pyxec_eval_to_clipboard"},
+    {"caption": "Pyxec: Execute, print to Pyxec View", "command": "pyxec_execute"},
+    {"caption": "Pyxec: Evaluate replace", "command": "pyxec_evaluate_replace"},
     {"caption": "Pyxec: Reinitialize python context", "command": "pyxec_init_context"},
 ]
