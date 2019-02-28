@@ -1,4 +1,4 @@
 [
-    { "keys": ["alt+c"], "command": "pyxec_eval_to_clipboard" },
-    { "keys": ["shift+alt+c"], "command": "pyxec_exec_to_clipboard" },
+	{ "keys": ["alt+c"], "command": "pyxec_evaluate_replace" },
+	{ "keys": ["shift+alt+c"], "command": "pyxec_execute" },
 ]
